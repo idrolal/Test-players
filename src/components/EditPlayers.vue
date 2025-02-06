@@ -1,105 +1,113 @@
 <template>
-  <h1>Редактирование игроков</h1>
+  <div class="form-wrapper">
+    <div v-for="(item, idx) in usersLife" :key="item.id" class="row">
+      <input
+        @change="updateDataPlayer(item, idx)"
+        v-model="item.name"
+        :minlength="1"
+        placeholder="Имя"
+      />
 
-  <div
-    v-for="item in usersLife"
-    :key="item.name"
-    class="row"
-  >
-      <input id="name" v-model="item.name">
-      <a class="button" href="#" @click.prevent="minusLife(item)">-</a>
-      <span class="lifeCount">{{item.life}}</span>
-      <a class="button" href="#" @click.prevent="plusLife(item)">+</a>
+      <div class="row-action">
+        <input
+          class="lifeCount"
+          v-model="item.life"
+          type="number"
+          :min="1"
+          @change="updateDataPlayer(item, idx)"
+          :disabled="item.life <= 1"
+          :class="{
+            invalid: item.life < 1,
+          }"
+        />
+
+        <div>
+          <button type="button" class="button" @click="plusLife(item, idx)">
+            +
+          </button>
+          <button
+            type="button"
+            class="button"
+            @click="minusLife(item, idx)"
+            :disabled="item.life <= 1"
+          >
+            -
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
-  
-  <h2>Рейтинг</h2>
-  <table>
-    <tr
-    v-for="(item, index) in rating"
-    :key="index"
-    >
-    <td v-text="`${index + 1}`"></td>
-    <td v-text="`У игрока <b>${item.name}</b> ${item.life} жизней`"></td>
-  </tr>
-  </table>
 </template>
 
 <script>
 export default {
-  name: 'LifeCounter',
+  name: 'EditPlayers',
 
   props: {
     playersList: {
-      type: Array
+      type: Array,
+      default: () => [],
     },
   },
-  
-  data () {
-    return {
-    };
-  },
-  
-  created() {
-    for (let i = 0; i < this.playersList; i++) {
-      this.usersLife.push({
-        name: this.playersList.name,
-        life: this.playersList.life
-      });
-    }
-  },
-  
+
   computed: {
-    usersLife () {
-      return [...this.playersList]
+    usersLife() {
+      return this.playersList.map((player) => ({ ...player }));
     },
-    rating () {
-      let places = this.usersLife;
-  
-      places.sort((a, b) => b.life - a.life);
-     
-      return places;
-    }
   },
-  
+
   methods: {
-    plusLife (item) {
-      item.life++;
+    updateDataPlayer(item, idx) {
+      if (item.name.trim().length && item.life > 1) {
+        this.updatePlayer(item, idx);
+      }
+    },
+    plusLife(item, idx) {
+      item.life += 1;
+      this.updatePlayer(item, idx);
     },
 
-    minusLife (item) {
-      item.life--;
-    }
+    minusLife(item, idx) {
+      if (item.life > 1) {
+        item.life -= 1;
+        this.updatePlayer(item, idx);
+      }
+    },
+
+    updatePlayer(player, idx) {
+      this.$emit('updatePlayer', { player, idx });
+    },
   },
-}
+};
 </script>
 
-<style lang="scss">
-    .row {
-        display: flex;
-        align-items: center;
-        margin-top: 20px;
+<style lang="scss" scoped>
+.form-wrapper {
+  display: flex;
+  align-items: start;
+  flex-direction: column;
+  gap: 20px;
 
-        input {
-            margin-right: 12px;
-            width: 100%;
-            height: 24px;
-        }
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
 
-        .button {
-          width: 24px;
-          height: 24px;
-        }
-
-        .life {
-          margin: 0 12px;
-        }
-    }
-
-    table {
+    input {
       width: 100%;
-
-      td {
-        border: 1px solid #2c3e50;
-      }
     }
+
+    .button {
+      width: 24px;
+      height: 24px;
+    }
+
+    .row-action {
+      display: flex;
+      align-items: center;
+      justify-content: end;
+    }
+  }
+}
 </style>
